@@ -16,32 +16,37 @@ let in_wartosc (w:wartosc) (a:float) =
     match w with
     | [] -> false
     | h::t -> let Przedzial(x, y) = h in
+      assert(x <= y);
       if x <= a && y >= a then true
-      else pom t a
+      else pom t a in
+  pom w a
     
 let min_wartosc w =
   let rec pom w mini =
     match w with
     | [] -> mini
     | h::t -> let Przedzial(x, y) = h in
-      pom t (min mini x)
+      assert(x <= y);
+      pom t (min mini x) in
+  pom w infinity
 
 let max_wartosc w =
   let rec pom w maks =
     match w with
     | [] -> maks
     | h::t -> let Przedzial(x, y) = h in
-      pom t (max maks x)
+      assert(x <= y);
+      pom t (max maks x) in
+  pom w neg_infinity
 
 let sr_wartosc w =
   match w with
   | h::[] -> let Przedzial(x, y) = h in
+    assert(x <= y);
     if x = neg_infinity || y = infinity then nan
     else (x +. y) /. 2.
   | h::t -> nan
     
  
-let () = assert(1 <= 2)
-
-
-
+let () = assert( sr_wartosc [Przedzial(0.1,2.9)] = 1.5 )
+  
