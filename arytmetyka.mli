@@ -34,10 +34,10 @@ val max_wartosc: wartosc -> float
 (* środek przedziału od min_wartosc do max_wartosc, *)
 (* lub nan jeśli min i max_wartosc nie są określone.*)
 val sr_wartosc:  wartosc -> float       
-(*
+
 (* Operacje arytmetyczne na niedokładnych wartościach. *)
 val plus:      wartosc -> wartosc -> wartosc  
 val minus:     wartosc -> wartosc -> wartosc 
 val razy:      wartosc -> wartosc -> wartosc  
 val podzielic: wartosc -> wartosc -> wartosc   
-*)
+

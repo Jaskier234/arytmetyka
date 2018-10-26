@@ -1,3 +1,5 @@
 *.out
 *.cmo
 *.cmi
+*.native
+_build/*
