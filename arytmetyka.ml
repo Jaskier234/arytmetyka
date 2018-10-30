@@ -87,9 +87,15 @@ let mnozenie (a:przedzial) (b:przedzial) =
     else false in
   
   if is_wredny a && is_wredny b then
-    let sign_a = if w = neg_infinity || x = 0. then -1. else 1. in 
-    let sign_b = if y = neg_infinity || z = 0. then -1. else 1. in
-    let lista2 = lista @ ((infinity *. sign_a *. sign_b) :: 0. :: []) in
+    let sign wart =
+      (*  *)
+      let Przedzial(xw, yw) = wart in
+      if xw = 0. && yw = 0. then 0.
+      else if xw = neg_infinity || yw = 0. then -1.
+      else 1. in 
+(*    let sign_a = if w = neg_infinity || x = 0. then -1. else 1. in 
+    let sign_b = if y = neg_infinity || z = 0. then -1. else 1. in*)
+    let lista2 = lista @ ((infinity *. sign a *. sign b) :: 0. :: []) in
     Przedzial(mini lista2, maks lista2)  
   else Przedzial(mini lista, maks lista)
 
