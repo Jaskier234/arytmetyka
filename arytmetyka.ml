@@ -1,4 +1,5 @@
-
+open List
+  
 (* Reprezentacja przedziałów.
    Typ wartosc to lista przedziałów długości:
    - 0 przedzial pusty   
@@ -65,13 +66,32 @@ let dodawanie (a:przedzial) (b:przedzial) =
   let Przedzial(bx, by) = b in
   Przedzial(ax +. bx, ay +. by)
 
+let not_nan a =
+    if classify_float a = FP_nan then false else true
+
+let mini l =
+  filter not_nan l |> fold_left min infinity l
+
+let maks l =
+  filter not_nan l |> fold_left max neg_infinity l
+
 let mnozenie (a:przedzial) (b:przedzial) =
   (* funkcja pomocnicza, która mnoży 2 przedziały *)
   let Przedzial(w, x) = a in
   let Przedzial(y, z) = b in
-  let nx = min (min (w *. y) (w *. z)) (min (x *. y) (x *. z)) in
-  let ny = max (max (w *. y) (w *. z)) (max (x *. y) (x *. z)) in
-  Przedzial(nx, ny)
+  let lista = [w *. y; w *. z; x *. y; x *. z] in 
+
+  let is_wredny wart =
+    let Przedzial(xw, yw) = wart in 
+    if xw = neg_infinity || xw = 0. || yw = infinity || yw = 0. then true
+    else false in
+  
+  if is_wredny a && is_wredny b then
+    let sign_a = if w = neg_infinity || x = 0. then -1. else 1. in 
+    let sign_b = if y = neg_infinity || z = 0. then -1. else 1. in
+    let lista2 = lista @ ((infinity *. sign_a *. sign_b) :: 0. :: []) in
+    Przedzial(mini lista2, maks lista2)  
+  else Przedzial(mini lista, maks lista)
 
 
 
@@ -134,7 +154,7 @@ let minus (a:wartosc) (b:wartosc) =
 
 let odwrotny (a:wartosc) =
   (* zwraca listę przedziałów odwrotnych *)
-  match a with(* duuużo przypasków. opiszę potem jak będzie trzeba *)
+  match a with(* duuużo przypadków. opiszę potem jak będzie trzeba *)
   | [] -> []
   | Przedzial(neg_infinity, a) :: Przedzial(b, infinity) :: _ ->
     assert(a < b);

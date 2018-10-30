@@ -86,5 +86,7 @@ assert( in_wartosc dsa (-6.5) = true);
 assert( in_wartosc dsa 4.33 = false);
 assert( in_wartosc dsa 234852345234542325.4353435243 = true);
 
-
+assert( min_wartosc [] = nan);
+assert( max_wartosc [] = nan);
+assert( sr_wartosc [] = nan);
 print_string "OK";;
