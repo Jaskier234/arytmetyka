@@ -32,7 +32,8 @@ let in_wartosc wart a =
   in_przedzial wart a
     
 let min_wartosc wart =
-  let rec min_przedzial (w:wartosc) (mini:float) =
+  if wart = [] then nan
+  else let rec min_przedzial (w:wartosc) (mini:float) =
     match w with
     | [] -> mini
     | h :: t -> let Przedzial(x, y) = h in
@@ -41,7 +42,8 @@ let min_wartosc wart =
   min_przedzial wart infinity
 
 let max_wartosc wart =
-  let rec max_przedzial w maks =
+  if wart = [] then nan
+  else let rec max_przedzial w maks =
     match w with
     | [] -> maks
     | h :: t -> let Przedzial(x, y) = h in
