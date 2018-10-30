@@ -86,10 +86,8 @@ let mnozenie (a:przedzial) (b:przedzial) =
     let Przedzial(xw, yw) = wart in
     if xw = 0. || yw = 0. then true else false in
 
-  (* jeżeli oba przedziały spełniają warunek is_special, musimy dodać do listy ogr
-  wartości 0. i +/-inf 
-  jeśli sign a lub b = 0 to infinity * sign... = nan i nie jest uwzględniane w 
-  funkcjach mini mask *)
+  (* specjalny przypadek dla przedziałów którtch końcami są -inf, inf lub 0
+  wtedy należy rozszerzyć listę ogr *)
   if (is_sc1 a && is_sc2 b) ||(is_sc1 b && is_sc2 a) then
     let sign wart =
       let Przedzial(xw, yw) = wart in
@@ -99,7 +97,6 @@ let mnozenie (a:przedzial) (b:przedzial) =
     let lista2 = ogr @ ((infinity *. sign a *. sign b) :: 0. :: []) in
     Przedzial(mini lista2, maks lista2)  
   else Przedzial(mini ogr, maks ogr)
-
 
 
 let dzialanie (f:przedzial->przedzial->przedzial) (a:wartosc) (b:wartosc) =
@@ -135,6 +132,7 @@ let plus (a:wartosc) (b:wartosc) =
   kompresuj (dzialanie dodawanie a b)
 
 let razy (a:wartosc) (b:wartosc) =
+  (* jeśli mnożymy przez [0,0] to wynikiem jest [0,0] *)
   match a, b with
   | (Przedzial(x,y)::_ , Przedzial(z,w)::_ ) -> 
     if (x = 0. && y = 0.) || (z = 0. && w = 0.) then Przedzial(0.,0.) :: []
