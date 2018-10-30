@@ -79,21 +79,23 @@ let mnozenie (a:przedzial) (b:przedzial) =
   let mini l = filter not_nan l |> fold_left min infinity in
   let maks l = filter not_nan l |> fold_left max neg_infinity in
 
-  let is_special wart =
+  let is_sc1 wart =
     let Przedzial(xw, yw) = wart in 
-    if xw = neg_infinity || xw = 0. || yw = infinity || yw = 0. then true
-    else false in
+    if xw = neg_infinity || yw = infinity then true else false in
+  let is_sc2 wart =
+    let Przedzial(xw, yw) = wart in
+    if xw = 0. || yw = 0. then true else false in
 
   (* jeżeli oba przedziały spełniają warunek is_special, musimy dodać do listy ogr
   wartości 0. i +/-inf 
   jeśli sign a lub b = 0 to infinity * sign... = nan i nie jest uwzględniane w 
   funkcjach mini mask *)
-  if is_special a && is_special b then
+  if (is_sc1 a && is_sc2 b) ||(is_sc1 b && is_sc2 a) then
     let sign wart =
       let Przedzial(xw, yw) = wart in
       if xw = 0. && yw = 0. then 0.
       else if xw = neg_infinity || yw = 0. then -1.
-      else 1. in 
+      else 1. in
     let lista2 = ogr @ ((infinity *. sign a *. sign b) :: 0. :: []) in
     Przedzial(mini lista2, maks lista2)  
   else Przedzial(mini ogr, maks ogr)
@@ -133,7 +135,11 @@ let plus (a:wartosc) (b:wartosc) =
   kompresuj (dzialanie dodawanie a b)
 
 let razy (a:wartosc) (b:wartosc) =
-  kompresuj (dzialanie mnozenie a b)
+  match a, b with
+  | (Przedzial(x,y)::_ , Przedzial(z,w)::_ ) -> 
+    if (x = 0. && y = 0.) || (z = 0. && w = 0.) then Przedzial(0.,0.) :: []
+    else kompresuj (dzialanie mnozenie a b)
+  | _ -> kompresuj (dzialanie mnozenie a b)
 
 let przeciwny (a:wartosc) =
   (* zwraca listę przedziałów przeciwnych *)
@@ -155,7 +161,7 @@ let odwrotny (a:wartosc) =
     if a = 0. then Przedzial(neg_infinity, 1. /. b) :: []
     else if b = 0. then Przedzial(1. /. a, infinity) :: []
     else if a *. b < 0. then Przedzial(1. /. a, 1. /. b) :: []
-    else Przedzial(1. /. b, 1. /. a) :: []
+    else Przedzial(neg_infinity, 1. /. b) :: Przedzial( 1. /. a, infinity ) :: []
   | Przedzial(a, b) :: [] ->
     let ia = 1. /. a in
     let ib = 1. /. b in
@@ -167,7 +173,7 @@ let odwrotny (a:wartosc) =
     else if a = 0. then Przedzial(ib, inf) :: []
     else if b = 0. then Przedzial(n_inf, ia) :: []
     else if a *. b < 0. then Przedzial(n_inf, ia) :: Przedzial(ib, inf) :: []
-    else Przedzial(n_inf, ib) :: Przedzial(ia, inf) :: []
+    else Przedzial(ib, ia) :: []
 
 let podzielic (a:wartosc) (b:wartosc) =
   razy a (odwrotny b)
