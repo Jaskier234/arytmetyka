@@ -70,10 +70,10 @@ let not_nan a =
     if classify_float a = FP_nan then false else true
 
 let mini l =
-  filter not_nan l |> fold_left min infinity l
+  filter not_nan l |> fold_left min infinity 
 
 let maks l =
-  filter not_nan l |> fold_left max neg_infinity l
+  filter not_nan l |> fold_left max neg_infinity 
 
 let mnozenie (a:przedzial) (b:przedzial) =
   (* funkcja pomocnicza, która mnoży 2 przedziały *)
