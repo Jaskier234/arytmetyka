@@ -1,3 +1,6 @@
+(* autor: Artur Matyjasek *)
+(* code review: Michał Makowski *)
+
 open List
   
 (* Reprezentacja przedziałów.
@@ -22,8 +25,6 @@ let wartosc_dokladna x = Przedzial(x, x) :: []
 
 let in_wartosc wart a =
   let rec in_przedzial (w:wartosc) (a:float) =
-    (* funkcja in_przedzial wywołuje się rekurencyjnie na liście przedziałów 'w'
-    i sprawdza czy wartość 'a' jest w którymś z nich*) 
     match w with
     | [] -> false
     | h :: t -> let Przedzial(x, y) = h in
@@ -44,7 +45,7 @@ let min_wartosc wart =
 
 let max_wartosc wart =
   if wart = [] then nan
-  else let rec max_przedzial w maks =
+  else let rec max_przedzial (w:wartosc) (maks:float) = 
     match w with
     | [] -> maks
     | h :: t -> let Przedzial(x, y) = h in
@@ -66,46 +67,44 @@ let dodawanie (a:przedzial) (b:przedzial) =
   let Przedzial(bx, by) = b in
   Przedzial(ax +. bx, ay +. by)
 
-let not_nan a =
-    if classify_float a = FP_nan then false else true
 
-let mini l =
-  filter not_nan l |> fold_left min infinity 
-
-let maks l =
-  filter not_nan l |> fold_left max neg_infinity 
 
 let mnozenie (a:przedzial) (b:przedzial) =
   (* funkcja pomocnicza, która mnoży 2 przedziały *)
   let Przedzial(w, x) = a in
   let Przedzial(y, z) = b in
-  let lista = [w *. y; w *. z; x *. y; x *. z] in 
+  let ogr = [w *. y; w *. z; x *. y; x *. z] in
 
-  let is_wredny wart =
+  let not_nan a = if classify_float a = FP_nan then false else true in
+  let mini l = filter not_nan l |> fold_left min infinity in
+  let maks l = filter not_nan l |> fold_left max neg_infinity in
+
+  let is_special wart =
     let Przedzial(xw, yw) = wart in 
     if xw = neg_infinity || xw = 0. || yw = infinity || yw = 0. then true
     else false in
-  
-  if is_wredny a && is_wredny b then
+
+  (* jeżeli oba przedziały spełniają warunek is_special, musimy dodać do listy ogr
+  wartości 0. i +/-inf 
+  jeśli sign a lub b = 0 to infinity * sign... = nan i nie jest uwzględniane w 
+  funkcjach mini mask *)
+  if is_special a && is_special b then
     let sign wart =
-      (*  *)
       let Przedzial(xw, yw) = wart in
       if xw = 0. && yw = 0. then 0.
       else if xw = neg_infinity || yw = 0. then -1.
       else 1. in 
-(*    let sign_a = if w = neg_infinity || x = 0. then -1. else 1. in 
-    let sign_b = if y = neg_infinity || z = 0. then -1. else 1. in*)
-    let lista2 = lista @ ((infinity *. sign a *. sign b) :: 0. :: []) in
+    let lista2 = ogr @ ((infinity *. sign a *. sign b) :: 0. :: []) in
     Przedzial(mini lista2, maks lista2)  
-  else Przedzial(mini lista, maks lista)
+  else Przedzial(mini ogr, maks ogr)
 
 
 
 let dzialanie (f:przedzial->przedzial->przedzial) (a:wartosc) (b:wartosc) =
   (* funkcja przyjmująca 2 argumenty typu wartosc i zwracająca typ wartosc.
-  Działa funkcją 'f' na przedziały z a i b (każdy z każdym) i zwraca listę tych 
-  przedziałów. Wyjściowa lista nie musi być poprawnym elementem typu wartosc
-  (może mieć do 4 przedziałów) *)  
+  Działa funkcją 'f'(dodawanie/mnozenie) na przedziały z a i b (każdy z każdym)
+  i zwraca listę tych przedziałów. Wyjściowa lista nie musi być poprawnym 
+  elementem typu wartosc (może mieć do 4 przedziałów) *)  
   let rec pom1 (a1:wartosc) (b1:wartosc) (ak:wartosc) =
     match a1 with
     | [] -> ak
@@ -116,17 +115,6 @@ let dzialanie (f:przedzial->przedzial->przedzial) (a:wartosc) (b:wartosc) =
       pom1 t1 b1  (pom2 h1 b1 [])@ak in 
   (pom1 a b []:wartosc);;
 
-(* jakieś testy *)
-(************************************************************)
-let a = [ Przedzial(-10.0, -9.0) ; Przedzial(9.0, 10.0)];;
-let b = [ Przedzial(-2.0, -1.0); Przedzial(2.0, 3.0)];;
-
-let ans = dzialanie dodawanie a b;;
-(************************************************************)
-
-let c = [ Przedzial(neg_infinity, -10.0); Przedzial(2.0, infinity);
-          Przedzial(neg_infinity, -12.0); Przedzial(10.0, infinity)]
-
 let kompresuj (w:wartosc) =
   (* Przyjmuje typ wartosc dowolnej długości i zwraca typ wartosc spełniący 
   początkowe założenia *)
@@ -134,11 +122,11 @@ let kompresuj (w:wartosc) =
   | [] -> w
   | h :: [] -> w
   | h :: t -> let rec pom l mini maks =
-     match l with
-     | [] -> if mini >= maks then [Przedzial(neg_infinity, infinity)]
-       else [ Przedzial( neg_infinity, mini ); Przedzial( maks, infinity ) ]
-     | Przedzial(x, y) :: t -> if x = neg_infinity then pom t (max mini y) maks
-       else pom t mini (min maks x) in
+    match l with
+    | [] -> if mini >= maks then [Przedzial(neg_infinity, infinity)]
+      else [ Przedzial( neg_infinity, mini ); Przedzial( maks, infinity ) ]
+    | Przedzial(x, y) :: t -> if x = neg_infinity then pom t (max mini y) maks
+      else pom t mini (min maks x) in
     pom w neg_infinity infinity
       
 let plus (a:wartosc) (b:wartosc) =
@@ -160,9 +148,9 @@ let minus (a:wartosc) (b:wartosc) =
 
 let odwrotny (a:wartosc) =
   (* zwraca listę przedziałów odwrotnych *)
-  match a with(* duuużo przypadków. opiszę potem jak będzie trzeba *)
+  match a with
   | [] -> []
-  | Przedzial(neg_infinity, a) :: Przedzial(b, infinity) :: _ ->
+  | Przedzial(_, a) :: Przedzial(b, _) :: _ ->
     assert(a < b);
     if a = 0. then Przedzial(neg_infinity, 1. /. b) :: []
     else if b = 0. then Przedzial(1. /. a, infinity) :: []

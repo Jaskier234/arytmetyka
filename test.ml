@@ -31,6 +31,18 @@ let mini_dsa = min_wartosc dsa;;
 let maks_dsa = max_wartosc dsa;;
 let ans = sr_wartosc dsa;;
 
+let f = wartosc_od_do (-2.) 0.;;
+(* [-3 inf] *)
+let jeden = wartosc_dokladna 1.;;
+let g = minus (podzielic jeden (wartosc_od_do 0. 1.)) (wartosc_dokladna (4.));;
+let fg = razy f g;;
+
+let zero = wartosc_dokladna 0.;;
+let pusty = podzielic jeden zero;;
+let inti = min_wartosc pusty;;
+let pelny = wartosc_od_do neg_infinity infinity;;
+let h = razy zero pelny;;
+
 assert(sr_wartosc p = 1.5);
 assert(min_wartosc p = 0.1);
 assert(max_wartosc p = 2.9);
@@ -80,13 +92,21 @@ assert( in_wartosc asd (-40.01) = false);
 
 
 
-assert( classify_float(sr_wartosc dsa) = classify_float(nan) );
+assert( classify_float(sr_wartosc dsa) = FP_nan );
 assert( in_wartosc dsa 0.0 = false);
 assert( in_wartosc dsa (-6.5) = true);
 assert( in_wartosc dsa 4.33 = false);
 assert( in_wartosc dsa 234852345234542325.4353435243 = true);
 
-assert( min_wartosc [] = nan);
-assert( max_wartosc [] = nan);
-assert( sr_wartosc [] = nan);
+assert( in_wartosc fg (-62345234.) = true );
+assert( in_wartosc fg 6. = true);
+assert( in_wartosc fg 6.00001 = false);
+
+assert( classify_float(min_wartosc pusty) = FP_nan);
+assert( classify_float(max_wartosc pusty) = FP_nan);
+assert( classify_float(sr_wartosc pusty) = FP_nan);
+
+assert( in_wartosc h 0. = true );
+assert( in_wartosc h 1. = false);
+assert( in_wartosc h (-1.) =false);
 print_string "OK";;
